@@ -22,7 +22,7 @@ jobs:
         kind: build
         uses: docker://exozet/jq:1.6-r0
         run: |
-          echo "BUILD_NUMBER: ${{ fromJSON(steps.run-cbci.outputs.cbci_output).BUILD_NUMBER }}"
+          echo '${{ steps.run-cbci.outputs.cbci_output }}'
       - name: Get source code
         uses: cloudbees-io/checkout@v1
         continue-on-error: true
