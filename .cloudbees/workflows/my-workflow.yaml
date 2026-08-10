@@ -8,7 +8,8 @@ on:
 jobs:
   compile-test:
     steps:
-      - name: Run Jenkins Job
+      - id: run-cbci 
+        name: Run Jenkins Job
         kind: test
         uses: cloudbees-io/jenkins-run-job@v2
         continue-on-error: false
