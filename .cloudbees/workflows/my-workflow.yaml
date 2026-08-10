@@ -11,7 +11,7 @@ jobs:
       - name: Run Jenkins Job
         kind: test
         id: run-cbci
-        uses: cloudbees-io/jenkins-run-job@v2
+        uses: cloudbees-io/cbci-run-job@v2
         continue-on-error: false
         with:
           url: https://sda.preview.cb-demos.io/westest/
@@ -21,7 +21,7 @@ jobs:
       - name: Show CBCI output
         uses: docker://alpine:3.19
         run: |
-          echo '${{ fromJSON(steps.run-cbci.outputs.jenkins_output).BUILD_NUMBER }}'
+          echo '${{ fromJSON(steps.run-cbci.outputs.cbci_output).BUILD_NUMBER }}'
       - name: Get source code
         uses: cloudbees-io/checkout@v1
         continue-on-error: true
@@ -47,7 +47,7 @@ jobs:
         uses: cloudbees-io/publish-evidence-item@v1
     outputs:
       CODE_COVERAGE: ${{ steps.RunUnitTest.outputs.CODE_COVERAGE }}
-      jenkins_output: ${{ steps.run-cbci.outputs.jenkins_output }}
+      cbci_output: ${{ steps.run-cbci.outputs.cbci_output }}
   build-image:
     steps:
       - name: Get source code
