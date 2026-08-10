@@ -17,6 +17,10 @@ jobs:
           username: ${{ secrets.WES_JENKINS_USERNAME }}
           token: ${{ secrets.WES_JENKINS_TOKEN }}
           job-name: WesTestJob
+      - name: Show CBCI output
+        uses: docker://alpine:3.19
+        run: |
+          echo '${{ steps.run-cbci.outputs.cbci_output }}'
       - name: Get source code
         uses: cloudbees-io/checkout@v1
         continue-on-error: true
