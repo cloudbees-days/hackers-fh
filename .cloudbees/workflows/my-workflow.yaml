@@ -19,9 +19,9 @@ jobs:
           token: ${{ secrets.WES_JENKINS_TOKEN }}
           job-name: WesTestJob
       - name: Show CBCI output
-        uses: docker://alpine:3.19
+        uses: docker://exozet/jq:1.6-r0
         run: |
-          echo '${{ fromJSON(steps.run-cbci.outputs.cbci_output).BUILD_NUMBER }}'
+          echo "BUILD_NUMBER: ${{ fromJSON(steps.run-cbci.outputs.cbci_output).BUILD_NUMBER }}"
       - name: Get source code
         uses: cloudbees-io/checkout@v1
         continue-on-error: true
