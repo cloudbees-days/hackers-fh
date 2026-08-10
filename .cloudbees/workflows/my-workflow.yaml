@@ -16,7 +16,7 @@ jobs:
           url: https://sda.preview.cb-demos.io/westest/
           username: ${{ secrets.WES_JENKINS_USERNAME }}
           token: ${{ secrets.WES_JENKINS_TOKEN }}
-          job-name: WesTestMB
+          job-name: WesTestJob
       - name: Get source code
         uses: cloudbees-io/checkout@v1
         continue-on-error: true
