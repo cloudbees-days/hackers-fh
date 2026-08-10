@@ -22,6 +22,8 @@ jobs:
         uses: docker://alpine:3.19
         run: |
           echo '${{ steps.run-cbci.outputs.jenkins_output }}'
+          echo "Build: ${{ fromJSON(steps.run-cbci.outputs.jenkins_output).BUILD_NUMBER }}"
+          echo "Image: ${{ fromJSON(steps.run-cbci.outputs.jenkins_output).TESTVAR }}"
       - name: Get source code
         uses: cloudbees-io/checkout@v1
         continue-on-error: true
