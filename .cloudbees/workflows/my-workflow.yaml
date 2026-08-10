@@ -23,7 +23,7 @@ jobs:
         run: |
           echo '${{ steps.run-cbci.outputs.jenkins_output }}'
           echo "Build: ${{ fromJSON(steps.run-cbci.outputs.jenkins_output).BUILD_NUMBER }}"
-          echo "Image: ${{ fromJSON(steps.run-cbci.outputs.jenkins_output).TESTVAR }}"
+          echo "Test Variable: ${{ fromJSON(steps.run-cbci.outputs.jenkins_output).TESTVAR }}"
       - name: Get source code
         uses: cloudbees-io/checkout@v1
         continue-on-error: true
@@ -49,7 +49,7 @@ jobs:
         uses: cloudbees-io/publish-evidence-item@v1
     outputs:
       CODE_COVERAGE: ${{ steps.RunUnitTest.outputs.CODE_COVERAGE }}
-      cbci_output: ${{ steps.run-cbci.outputs.jenkins_output }}
+      jenkins_output: ${{ steps.run-cbci.outputs.jenkins_output }}
   build-image:
     steps:
       - name: Get source code
