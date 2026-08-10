@@ -11,7 +11,7 @@ jobs:
       - name: Run Jenkins Job
         kind: test
         uses: cloudbees-io/jenkins-run-job@v2
-        continue-on-error: true
+        continue-on-error: false
         with:
           url: https://sda.preview.cb-demos.io/westest/
           username: ${{ secrets.WES_JENKINS_USERNAME }}
