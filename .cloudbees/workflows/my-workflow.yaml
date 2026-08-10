@@ -1,0 +1,173 @@
+apiVersion: automation.cloudbees.io/v1alpha1
+kind: workflow
+name: My workflow
+on:
+  push:
+    branches:
+      - "**"
+jobs:
+  compile-test:
+    steps:
+      - name: Run Jenkins Job
+        kind: test
+        uses: cloudbees-io/jenkins-run-job@v2
+        continue-on-error: true
+        with:
+          url: https://sda.preview.cb-demos.io/westest/
+          username: ${{ secrets.WES_JENKINS_USERNAME }}
+          token: ${{ secrets.WES_JENKINS_TOKEN }}
+          job-name: WesTestJob
+      - name: Get source code
+        uses: cloudbees-io/checkout@v1
+        continue-on-error: true
+      - name: Run tests
+        kind: test
+        id: RunUnitTest
+        uses: docker://node:lts
+        run: |
+          npm ci
+          npm run test:unit
+          npx jest --coverage >> $CLOUDBEES_OUTPUTS/CODE_COVERAGE
+      - name: Publish test results
+        uses: cloudbees-io/publish-test-results@v1
+        with:
+          test-type: JUnit
+          folder-name: ${{ cloudbees.workspace }}/junit.xml
+      - name: Publish evidence
+        uses: cloudbees-io/publish-evidence-item@v1
+        with:
+          content: |-
+            ## Test code coverage
+            ${{ steps.RunUnitTest.outputs.CODE_COVERAGE }}
+          format: MARKDOWN
+    outputs:
+      CODE_COVERAGE: ${{ steps.RunUnitTest.outputs.CODE_COVERAGE }}
+  build-image:
+    steps:
+      - name: Get source code
+        kind: build
+        uses: cloudbees-io/checkout@v1
+        continue-on-error: true
+      - name: Configure container registry credentials
+        uses: cloudbees-io/configure-oci-credentials@v1
+        continue-on-error: true
+        id: dockerconfig
+        with:
+          registry: https://index.docker.io/v1/
+          username: ${{ secrets.DOCKERHUB_USER }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Build container image
+        kind: build
+        uses: cloudbees-io/kaniko@v1
+        with:
+          destination: ${{ secrets.DOCKERHUB_USER }}/hackers-organized:${{ cloudbees.scm.sha }}
+          tar-path: container-image.tar
+          build-args: BUILDKIT_CONTEXT_KEEP_GIT_DIR=1,BUILDKIT_INLINE_CACHE=1
+      - name: Upload binary from container build
+        uses: cloudbees-io/asset-chain-utils-preprod/upload-binary@v1
+        id: upload-binary
+        with:
+          file-path: container-image.tar
+          file-type: BINARY_CONTAINER
+          debug: "true"
+      - name: Register build artifact
+        id: register-artifact
+        uses: cloudbees-io/register-build-artifact@v2
+        with:
+          version: ${{ cloudbees.scm.sha }}
+          url: ${{ secrets.DOCKERHUB_USER }}/hackers-organized:${{ cloudbees.scm.sha }}
+          name: ldonleycb/hackers-organized
+      - name: Publish evidence
+        uses: cloudbees-io/publish-evidence-item@v1
+        with:
+          content: |-
+            ## Built and pushed image to docker hub
+
+            [Docker Hub](https://hub.docker.com/repository/docker/ldonleycb/hackers-organized/tags)
+
+            **Artifact ID:** ${{ steps.register-artifact.outputs.artifact-id }}
+            **Image:** hackers-organized:${{ cloudbees.scm.sha }}
+          format: MARKDOWN
+    needs: compile-test
+    outputs:
+      ARTIFACT_ID: ${{ steps.register-artifact.outputs.artifact-id }}
+  deploy-sit:
+    environment: DOW SIT
+    steps:
+      - name: Checkout
+        uses: cloudbees-io/checkout@v1
+      - name: Set kubeconfig
+        uses: cashokannamalai/kubeconfig@v1
+        with:
+          secname: ${{ secrets.kubeconfig }}
+      - name: Deploy to SIT cluster
+        kind: deploy
+        uses: cloudbees-io/jenkins-run-job@v2
+        continue-on-error: true
+        with:
+          url: https://sda.preview.cb-demos.io/westest/
+          username: ${{ secrets.WES_JENKINS_USERNAME }}
+          token: ${{ secrets.WES_JENKINS_TOKEN }}
+          job-name: WesTestJob2
+      - name: Publish evidence
+        uses: cloudbees-io/publish-evidence-item@v1
+        with:
+          content: |-
+            ## Deployed environment
+            [SIT frontend](https://hackers.hackers-staging.preview.cb-demos.io/)
+
+            Running hackers-organized:${{ cloudbees.scm.sha }}
+            **Artifact ID:** ${{ needs.build-image.outputs.ARTIFACT_ID }}
+          format: MARKDOWN
+      - name: Register deployed artifact
+        uses: cloudbees-io/register-deployed-artifact@v2
+        with:
+          artifact-id: ${{ needs.build-image.outputs.ARTIFACT_ID }}
+          target-environment: DOW SIT
+    needs: build-image
+  approve-uat-deployment:
+    needs: deploy-sit
+    timeout-minutes: 4320
+    delegates: cloudbees-io/manual-approval/custom-job.yml@v1
+    with:
+      instructions: ""
+      disallowLaunchByUser: false
+      approvers: 5db39244-5a80-11f0-8d6a-42010a83ae57
+      notifyAllEligibleUsers: false
+  deploy-uat:
+    environment: DOW UAT
+    steps:
+      - name: Checkout
+        uses: cloudbees-io/checkout@v1
+      - name: Set kubeconfig
+        uses: cashokannamalai/kubeconfig@v1
+        with:
+          secname: ${{ secrets.kubeconfig }}
+      - name: Deploy to UAT cluster
+        kind: deploy
+        uses: cloudbees-io/jenkins-run-job@v2
+        continue-on-error: true
+        with:
+          url: https://sda.preview.cb-demos.io/westest/
+          username: ${{ secrets.WES_JENKINS_USERNAME }}
+          token: ${{ secrets.WES_JENKINS_TOKEN }}
+          job-name: WesTestJob3
+      - name: Publish evidence
+        uses: cloudbees-io/publish-evidence-item@v1
+        with:
+          content: |-
+            ## Deployed environment
+            [UAT frontend](https://hackers.hackers-qa.preview.cb-demos.io/)
+
+            Running hackers-organized:${{ cloudbees.scm.sha }}
+            **Artifact ID:** ${{ needs.build-image.outputs.ARTIFACT_ID }}
+          format: MARKDOWN
+      - name: Register deployed artifact
+        uses: cloudbees-io/register-deployed-artifact@v2
+        with:
+          artifact-id: ${{ needs.build-image.outputs.ARTIFACT_ID }}
+          target-environment: DOW UAT
+    needs:
+      - approve-uat-deployment
+      - build-image
+
