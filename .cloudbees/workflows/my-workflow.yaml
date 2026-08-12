@@ -18,6 +18,16 @@ jobs:
           username: ${{ secrets.WES_JENKINS_USERNAME }}
           token: ${{ secrets.WES_JENKINS_TOKEN }}
           job-name: WesTestJob
+      - id: gitlab
+        name: Run GitLab pipeline
+        with:
+          url: https://gitlab.com/
+          access-token: ${{ secrets.GITLAB_API_ACCESS_TOKEN }}
+          trigger-token: ${{ secrets.GITLAB_API_TRIGGER_TOKEN }}
+          namespace: cb-group2202133
+          project-name: cb-unify
+          branch-name: main
+        uses: cloudbees-io/gitlab-run-pipeline@v1
       - name: Get source code
         uses: cloudbees-io/checkout@v1
         continue-on-error: true
