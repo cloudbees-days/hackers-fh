@@ -120,7 +120,7 @@ jobs:
           project-name: cb-unify2
           branch-name: master
         uses: cloudbees-io/gitlab-run-pipeline@v1
-        id: gitlab
+        id: gitlab2
       - name: Publish evidence
         uses: cloudbees-io/publish-evidence-item@v1
         with:
@@ -164,7 +164,7 @@ jobs:
           project-name: cb-unify3
           branch-name: master
         uses: cloudbees-io/gitlab-run-pipeline@v1
-        id: gitlab
+        id: gitlab3
       - name: Publish evidence
         uses: cloudbees-io/publish-evidence-item@v1
         with:
