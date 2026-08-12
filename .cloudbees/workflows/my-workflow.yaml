@@ -111,15 +111,6 @@ jobs:
         uses: cashokannamalai/kubeconfig@v1
         with:
           secname: ${{ secrets.kubeconfig }}
-      - name: Deploy to Jenkins component to SIT cluster
-        kind: deploy
-        uses: cloudbees-io/jenkins-run-job@v2
-        continue-on-error: true
-        with:
-          url: https://sda.preview.cb-demos.io/westest/
-          username: ${{ secrets.WES_JENKINS_USERNAME }}
-          token: ${{ secrets.WES_JENKINS_TOKEN }}
-          job-name: WesTestJob2
       - name: Run GitLab SIT deploy pipeline
         with:
           url: https://gitlab.com/
@@ -127,7 +118,7 @@ jobs:
           trigger-token: ${{ secrets.GITLAB_API_TRIGGER_TOKEN }}
           namespace: cb-group2202133
           project-name: cb-unify2
-          branch-name: main
+          branch-name: master
         uses: cloudbees-io/gitlab-run-pipeline@v1
         id: gitlab
       - name: Publish evidence
@@ -164,15 +155,6 @@ jobs:
         uses: cashokannamalai/kubeconfig@v1
         with:
           secname: ${{ secrets.kubeconfig }}
-      - name: Deploy Jenkins component to UAT cluster
-        kind: deploy
-        uses: cloudbees-io/jenkins-run-job@v2
-        continue-on-error: true
-        with:
-          url: https://sda.preview.cb-demos.io/westest/
-          username: ${{ secrets.WES_JENKINS_USERNAME }}
-          token: ${{ secrets.WES_JENKINS_TOKEN }}
-          job-name: WesTestJob3
       - name: Run GitLab UAT deploy pipeline
         with:
           url: https://gitlab.com/
@@ -180,7 +162,7 @@ jobs:
           trigger-token: ${{ secrets.GITLAB_API_TRIGGER_TOKEN }}
           namespace: cb-group2202133
           project-name: cb-unify3
-          branch-name: main
+          branch-name: master
         uses: cloudbees-io/gitlab-run-pipeline@v1
         id: gitlab
       - name: Publish evidence
