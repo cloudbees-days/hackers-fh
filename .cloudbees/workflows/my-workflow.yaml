@@ -111,16 +111,6 @@ jobs:
         uses: cashokannamalai/kubeconfig@v1
         with:
           secname: ${{ secrets.kubeconfig }}
-      - name: Run GitLab SIT deploy pipeline
-        with:
-          url: https://gitlab.com/
-          access-token: ${{ secrets.GITLAB_API_ACCESS_TOKEN }}
-          trigger-token: ${{ secrets.GITLAB_API_TRIGGER_TOKEN }}
-          namespace: cb-group2202133
-          project-name: cb-unify2
-          branch-name: master
-        uses: cloudbees-io/gitlab-run-pipeline@v1
-        id: gitlab2
       - name: Publish evidence
         uses: cloudbees-io/publish-evidence-item@v1
         with:
@@ -155,16 +145,6 @@ jobs:
         uses: cashokannamalai/kubeconfig@v1
         with:
           secname: ${{ secrets.kubeconfig }}
-      - name: Run GitLab UAT deploy pipeline
-        with:
-          url: https://gitlab.com/
-          access-token: ${{ secrets.GITLAB_API_ACCESS_TOKEN }}
-          trigger-token: ${{ secrets.GITLAB_API_TRIGGER_TOKEN }}
-          namespace: cb-group2202133
-          project-name: cb-unify3
-          branch-name: master
-        uses: cloudbees-io/gitlab-run-pipeline@v1
-        id: gitlab3
       - name: Publish evidence
         uses: cloudbees-io/publish-evidence-item@v1
         with:
